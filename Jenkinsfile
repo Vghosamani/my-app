@@ -8,11 +8,6 @@ pipeline {
 
   stages {
 
-    stage('Checkout Code') {
-      steps {
-        git 'https://github.com/Vghosamani/my-app.git'
-      }
-    }
 
     stage('Build Docker Image') {
       steps {
