@@ -3,11 +3,10 @@ pipeline {
 
   environment {
     IMAGE_NAME = "vghosamani/myapp"
-    IMAGE_TAG  = "latest"
+    IMAGE_TAG  = "${BUILD_NUMBER}"
   }
 
   stages {
-
 
     stage('Build Docker Image') {
       steps {
@@ -37,8 +36,11 @@ pipeline {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh '''
           export KUBECONFIG=$KUBECONFIG
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+
+          kubectl set image deployment/myapp \
+            myapp=$IMAGE_NAME:$IMAGE_TAG
+
+          kubectl rollout restart deployment/myapp
           '''
         }
       }
@@ -48,12 +50,16 @@ pipeline {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh '''
+          kubectl rollout status deployment/myapp --timeout=180s
           kubectl get pods
-          kubectl rollout status deployment/myapp
           '''
         }
       }
     }
   }
 }
+
+
+
+
 
